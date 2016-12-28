@@ -84,7 +84,9 @@ def create_filenames(year_str, month_str):
 
   # Make a copy of the original JS file, just in case (only if it doesn't exist before)
   backup_filename = 'data/js/tweets/%s_%s_original.js' % (year_str, month_str)
-  return [data_filename, backup_filename]
+  media_directory_name = 'data/js/tweets/%s_%s_media' % (year_str, month_str)
+
+  return [data_filename, backup_filename, media_directory_name]
 
 
 def copy_file_if_absent(source, destination):
@@ -94,6 +96,16 @@ def copy_file_if_absent(source, destination):
       copyfile(source, destination)
 
 
+def read_month_data_file(data_filename):
+  with open(data_filename) as data_file:
+    data_str = data_file.read()
+    # Remove the assignment to a variable that breaks JSON parsing,
+    # but save for later since we have to recreate the file
+    first_data_line = re.match(r'Grailbird.data.tweets_(.*) =', data_str).group(0)
+    data_str = re.sub(first_data_line, '', data_str)
+    data = json.loads(data_str)
+    return [data, first_data_line]
+
 
 def process_month(date):
 
@@ -101,24 +113,17 @@ def process_month(date):
   month_str = '%02d' % date['month']
 
   try:
-    data_filename, backup_filename = create_filenames(year_str, month_str)
+    data_filename, backup_filename, media_directory_name = create_filenames(year_str, month_str)
     copy_file_if_absent(data_filename, backup_filename)
 
     # Loop 2: Go through all the tweets in a month
     # --------------------------------------------
 
-    with open(data_filename) as data_file:
-      data_str = data_file.read()
-      # Remove the assignment to a variable that breaks JSON parsing,
-      # but save for later since we have to recreate the file
-      first_data_line = re.match(r'Grailbird.data.tweets_(.*) =', data_str).group(0)
-      data_str = re.sub(first_data_line, '', data_str)
-      data = json.loads(data_str)
+    data, first_data_line = read_month_data_file(data_filename)
 
     tweet_length = len(data)
     image_count = 0
     tweet_count = 0
-    directory_name = 'data/js/tweets/%s_%s_media' % (year_str, month_str)
 
     print "%s/%s: %i tweets to process..." % (year_str, month_str, tweet_length)
 
