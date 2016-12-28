@@ -26,7 +26,6 @@ import urllib
 from shutil import copyfile
 
 # Introduce yourself
-
 print "Twitter export image fill 1.02"
 print "by Marcin Wichary (aresluna.org)"
 print "use --help to see options"
@@ -34,12 +33,17 @@ print
 
 # Process arguments
 
-parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
-parser.add_argument('--include-retweets', action='store_true',
+def parse_arguments():
+    parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
+    parser.add_argument('--include-retweets', action='store_true',
     help = 'download images of retweets in addition to your own tweets')
-parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
+    parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
     help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
-args = parser.parse_args()
+    return parser.parse_args()
+
+args = parse_arguments()
+print args
+exit(-1)
 
 # Check whether the earlier archive actually exists
 # (This is important because failure would mean quietly downloading all the files again)
