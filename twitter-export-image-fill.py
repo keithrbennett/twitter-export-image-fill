@@ -165,9 +165,6 @@ def process_month(date):
           url = media['media_url_https']
           extension = re.match(r'(.*)\.([^.]*)$', url).group(2)
 
-
-          # Only make the directory when we're ready to write the first file;
-          # this will avoid empty directories
           mkdir_if_absent(media_directory_name)
 
           # Download the original/best image size, rather than the default one
@@ -183,7 +180,7 @@ def process_month(date):
 
           # If using an earlier archive as a starting point, try to find the desired
           # image file there first, and copy it if present
-          if args.EARLIER_ARCHIVE_PATH:
+          if earlier_archive_path:
             try:
               os.stat(earlier_archive_path + local_filename)
             except:
@@ -204,7 +201,7 @@ def process_month(date):
               try:
                 urllib.urlretrieve(better_url, local_filename)
               except:
-                download_tries = download_tries - 1
+                download_tries -= 1
                 if download_tries == 0:
                   print
                   print "Failed to download %s after 3 tries." % better_url
@@ -253,14 +250,14 @@ args = parse_arguments()
 
 global earlier_archive_path
 earlier_archive_path = process_earlier_archive_path(args)
-index = read_index()
+tweets_by_month = read_index()
 
-print "To process: %i months worth of tweets..." % (len(index))
+print "To process: %i months worth of tweets..." % (len(tweets_by_month))
 print "(You can cancel any time. Next time you run, the script should resume at the last point.)"
 print
 
 image_count = 0
-for month in index:
+for month in tweets_by_month:
   image_count += process_month(month)
 
 
