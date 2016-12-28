@@ -96,6 +96,13 @@ def copy_file_if_absent(source, destination):
       copyfile(source, destination)
 
 
+def mkdir_if_absent(dir):
+  try:
+      os.stat(dir)
+  except:
+      os.mkdir(dir)
+
+
 def read_month_data_file(data_filename):
   with open(data_filename) as data_file:
     data_str = data_file.read()
@@ -121,14 +128,17 @@ def process_month(date):
 
     data, first_data_line = read_month_data_file(data_filename)
 
-    tweet_length = len(data)
+
+
+
+    tweet_count_for_month = len(data)
     image_count = 0
     tweet_count = 0
 
-    print "%s/%s: %i tweets to process..." % (year_str, month_str, tweet_length)
+    print "%s/%s: %i tweets to process..." % (year_str, month_str, tweet_count_for_month)
 
     for tweet in data:
-      tweet_count = tweet_count + 1
+      tweet_count += 1
 
       retweeted = 'retweeted_status' in tweet.keys()
 
@@ -155,12 +165,10 @@ def process_month(date):
           url = media['media_url_https']
           extension = re.match(r'(.*)\.([^.]*)$', url).group(2)
 
+
           # Only make the directory when we're ready to write the first file;
           # this will avoid empty directories
-          try:
-            os.stat(directory_name)
-          except:
-            os.mkdir(directory_name)
+          mkdir_if_absent(media_directory_name)
 
           # Download the original/best image size, rather than the default one
           better_url = url + ':orig'
@@ -184,7 +192,7 @@ def process_month(date):
               can_be_copied = True
 
           sys.stdout.write("\r  [%i/%i] %s %s..." %
-                           (tweet_count, tweet_length, "Copying" if can_be_copied else "Downloading", url))
+                           (tweet_count, tweet_count_for_month, "Copying" if can_be_copied else "Downloading", url))
           sys.stdout.write("\033[K")  # Clear the end of the line
           sys.stdout.flush()
 
@@ -221,18 +229,18 @@ def process_month(date):
           os.remove(data_filename)
           os.rename(data_filename_temp, data_filename)
 
-          tweet_image_count = tweet_image_count + 1
-          image_count = image_count + 1
+          tweet_image_count += 1
+          image_count += 1
 
           # End loop 3 (images in a tweet)
 
     # End loop 2 (tweets in a month)
     sys.stdout.write(
-      "\r%s/%s: %i tweets processed; %i images downloaded." % (year_str, month_str, tweet_length, image_count))
+      "\r%s/%s: %i tweets processed; %i images downloaded." % (year_str, month_str, tweet_count_for_month, image_count))
     sys.stdout.write("\033[K")  # Clear the end of the line
     sys.stdout.flush()
-    return image_count
     print
+    return image_count
 
   # Nicer support for Ctrl-C
   except KeyboardInterrupt:
@@ -253,7 +261,7 @@ print
 
 image_count = 0
 for month in index:
-  image_count = image_count + process_month(month)
+  image_count += process_month(month)
 
 
 # End loop 1 (all the months)
