@@ -87,6 +87,13 @@ def create_filenames(year_str, month_str):
   return [data_filename, backup_filename]
 
 
+def copy_file_if_absent(source, destination):
+    try:
+      os.stat(destination)
+    except:
+      copyfile(source, destination)
+
+
 
 def process_month(date):
 
@@ -95,10 +102,7 @@ def process_month(date):
 
   try:
     data_filename, backup_filename = create_filenames(year_str, month_str)
-    try:
-      os.stat(backup_filename)
-    except:
-      copyfile(data_filename, backup_filename)
+    copy_file_if_absent(data_filename, backup_filename)
 
     # Loop 2: Go through all the tweets in a month
     # --------------------------------------------
