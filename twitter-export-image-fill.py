@@ -41,22 +41,25 @@ def parse_arguments():
     help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
     return parser.parse_args()
 
+
+def test_earlier_archive_path(args):
+  if args.EARLIER_ARCHIVE_PATH:
+    earlier_archive_path = args.EARLIER_ARCHIVE_PATH
+    earlier_archive_path = earlier_archive_path.rstrip('/') + '/'
+    try:
+      os.stat(earlier_archive_path + '/data/js/tweet_index.js')
+    except:
+      print "Could not find the earlier archive!"
+      print "Make sure you're pointing at the directory that contains the index.html file."
+      sys.exit()
+
+
 args = parse_arguments()
-print args
-exit(-1)
+test_earlier_archive_path(args)
+
 
 # Check whether the earlier archive actually exists
 # (This is important because failure would mean quietly downloading all the files again)
-
-if args.EARLIER_ARCHIVE_PATH:
-  earlier_archive_path = args.EARLIER_ARCHIVE_PATH
-  earlier_archive_path = earlier_archive_path.rstrip('/') + '/'
-  try:
-    os.stat(earlier_archive_path + '/data/js/tweet_index.js')
-  except:
-    print "Could not find the earlier archive!"
-    print "Make sure you're pointing at the directory that contains the index.html file."
-    sys.exit()
 
 # Prepare variables
 
