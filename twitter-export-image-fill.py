@@ -44,7 +44,7 @@ def parse_arguments():
 
 # If an earlier archive has been specified, check whether or not it actually exists
 # (This is important because failure would mean quietly downloading all the files again)
-def test_earlier_archive_path(args):
+def process_earlier_archive_path(args):
   if args.EARLIER_ARCHIVE_PATH:
     earlier_archive_path = args.EARLIER_ARCHIVE_PATH
     earlier_archive_path = earlier_archive_path.rstrip('/') + '/'
@@ -54,6 +54,10 @@ def test_earlier_archive_path(args):
       print "Could not find the earlier archive!"
       print "Make sure you're pointing at the directory that contains the index.html file."
       sys.exit()
+  else:
+    earlier_archive_path = None
+
+  return earlier_archive_path
 
 
 # Process the index file to see what needs to be done
@@ -74,20 +78,8 @@ def read_index():
     sys.exit()
 
 
-args = parse_arguments()
-test_earlier_archive_path(args)
-index = read_index()
-
-print "To process: %i months worth of tweets..." % (len(index))
-print "(You can cancel any time. Next time you run, the script should resume at the last point.)"
-print
-
-
-# Prepare variables
-image_count_global = 0
-
-
 def process_month(date):
+
   try:
     year_str = '%04d' % date['year']
     month_str = '%02d' % date['month']
@@ -214,7 +206,6 @@ def process_month(date):
 
           tweet_image_count = tweet_image_count + 1
           image_count = image_count + 1
-          image_count_global = image_count_global + 1
 
           # End loop 3 (images in a tweet)
 
@@ -223,6 +214,7 @@ def process_month(date):
       "\r%s/%s: %i tweets processed; %i images downloaded." % (year_str, month_str, tweet_length, image_count))
     sys.stdout.write("\033[K")  # Clear the end of the line
     sys.stdout.flush()
+    return image_count
     print
 
   # Nicer support for Ctrl-C
@@ -232,15 +224,23 @@ def process_month(date):
     sys.exit()
 
 
-# Loop 1: Go through all the months
-# ---------------------------------
+args = parse_arguments()
 
-for date in index:
-  process_month(date)
+global earlier_archive_path
+earlier_archive_path = process_earlier_archive_path(args)
+index = read_index()
+
+print "To process: %i months worth of tweets..." % (len(index))
+print "(You can cancel any time. Next time you run, the script should resume at the last point.)"
+print
+
+image_count = 0
+for month in index:
+  image_count = image_count + process_month(month)
 
 
 # End loop 1 (all the months)
 print
 print "Done!"
-print "%i images downloaded in total." % image_count_global
+print "%i images downloaded in total." % image_count
 print
