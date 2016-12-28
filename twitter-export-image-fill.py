@@ -87,11 +87,7 @@ print
 image_count_global = 0
 
 
-
-# Loop 1: Go through all the months
-# ---------------------------------
-
-for date in index:
+def process_month(date):
   try:
     year_str = '%04d' % date['year']
     month_str = '%02d' % date['month']
@@ -103,7 +99,6 @@ for date in index:
       os.stat(backup_filename)
     except:
       copyfile(data_filename, backup_filename)
-
 
     # Loop 2: Go through all the tweets in a month
     # --------------------------------------------
@@ -139,7 +134,6 @@ for date in index:
         # (only first 19 characters + replace colons with dots)
         date = re.sub(r':', '.', tweet['created_at'][:19])
 
-
         # Loop 3: Go through all the media in a tweet
         # -------------------------------------------
 
@@ -162,9 +156,9 @@ for date in index:
           # Download the original/best image size, rather than the default one
           better_url = url + ':orig'
 
-          local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s.%s' %\
-              (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
-               tweet_image_count, extension)
+          local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s.%s' % \
+                           (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
+                            tweet_image_count, extension)
 
           can_be_copied = False
           downloaded = False
@@ -181,8 +175,8 @@ for date in index:
               can_be_copied = True
 
           sys.stdout.write("\r  [%i/%i] %s %s..." %
-              (tweet_count, tweet_length, "Copying" if can_be_copied else "Downloading", url))
-          sys.stdout.write("\033[K") # Clear the end of the line
+                           (tweet_count, tweet_length, "Copying" if can_be_copied else "Downloading", url))
+          sys.stdout.write("\033[K")  # Clear the end of the line
           sys.stdout.flush()
 
           if can_be_copied:
@@ -199,7 +193,7 @@ for date in index:
                   print "Failed to download %s after 3 tries." % better_url
                   print "Please try again later?"
                   sys.exit()
-                time.sleep(5) # Wait 5 seconds before retrying
+                time.sleep(5)  # Wait 5 seconds before retrying
               else:
                 downloaded = True
 
@@ -222,11 +216,12 @@ for date in index:
           image_count = image_count + 1
           image_count_global = image_count_global + 1
 
-        # End loop 3 (images in a tweet)
+          # End loop 3 (images in a tweet)
 
     # End loop 2 (tweets in a month)
-    sys.stdout.write("\r%s/%s: %i tweets processed; %i images downloaded." % (year_str, month_str, tweet_length, image_count))
-    sys.stdout.write("\033[K") # Clear the end of the line
+    sys.stdout.write(
+      "\r%s/%s: %i tweets processed; %i images downloaded." % (year_str, month_str, tweet_length, image_count))
+    sys.stdout.write("\033[K")  # Clear the end of the line
     sys.stdout.flush()
     print
 
@@ -235,6 +230,14 @@ for date in index:
     print
     print "Interrupted! Come back any time."
     sys.exit()
+
+
+# Loop 1: Go through all the months
+# ---------------------------------
+
+for date in index:
+  process_month(date)
+
 
 # End loop 1 (all the months)
 print
