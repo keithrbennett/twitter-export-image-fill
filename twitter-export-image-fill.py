@@ -53,7 +53,7 @@ def process_earlier_archive_path(args):
     except:
       print "Could not find the earlier archive!"
       print "Make sure you're pointing at the directory that contains the index.html file."
-      sys.exit()
+      sys.exit(-4)
   else:
     earlier_archive_path = None
 
@@ -75,7 +75,7 @@ def read_index():
     print "Please run this script from your tweet archive directory"
     print "(the one with index.html file)."
     print
-    sys.exit()
+    sys.exit(-1)
 
 
 def process_month(date):
@@ -184,7 +184,7 @@ def process_month(date):
                   print
                   print "Failed to download %s after 3 tries." % better_url
                   print "Please try again later?"
-                  sys.exit()
+                  sys.exit(-2)
                 time.sleep(5)  # Wait 5 seconds before retrying
               else:
                 downloaded = True
@@ -221,7 +221,7 @@ def process_month(date):
   except KeyboardInterrupt:
     print
     print "Interrupted! Come back any time."
-    sys.exit()
+    sys.exit(-3)
 
 
 args = parse_arguments()
