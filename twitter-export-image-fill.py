@@ -34,14 +34,16 @@ print
 # Process arguments
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
-    parser.add_argument('--include-retweets', action='store_true',
-    help = 'download images of retweets in addition to your own tweets')
-    parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
-    help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
-    return parser.parse_args()
+  parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
+  parser.add_argument('--include-retweets', action='store_true',
+  help = 'download images of retweets in addition to your own tweets')
+  parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
+  help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
+  return parser.parse_args()
 
 
+# If an earlier archive has been specified, check whether or not it actually exists
+# (This is important because failure would mean quietly downloading all the files again)
 def test_earlier_archive_path(args):
   if args.EARLIER_ARCHIVE_PATH:
     earlier_archive_path = args.EARLIER_ARCHIVE_PATH
@@ -54,35 +56,36 @@ def test_earlier_archive_path(args):
       sys.exit()
 
 
+# Process the index file to see what needs to be done
+def read_index():
+  index_filename = "data/js/tweet_index.js"
+  try:
+    with open(index_filename) as index_file:
+      index_str = index_file.read()
+      index_str = re.sub(r'var tweet_index =', '', index_str)
+      index = json.loads(index_str)
+      return index
+
+  except:
+    print "Could not open the data file!"
+    print "Please run this script from your tweet archive directory"
+    print "(the one with index.html file)."
+    print
+    sys.exit()
+
+
 args = parse_arguments()
 test_earlier_archive_path(args)
-
-
-# Check whether the earlier archive actually exists
-# (This is important because failure would mean quietly downloading all the files again)
-
-# Prepare variables
-
-image_count_global = 0
-
-# Process the index file to see what needs to be done
-
-index_filename = "data/js/tweet_index.js"
-try:
-  with open(index_filename) as index_file:
-    index_str = index_file.read()
-    index_str = re.sub(r'var tweet_index =', '', index_str)
-    index = json.loads(index_str)
-except:
-  print "Could not open the data file!"
-  print "Please run this script from your tweet archive directory"
-  print "(the one with index.html file)."
-  print
-  sys.exit()
+index = read_index()
 
 print "To process: %i months worth of tweets..." % (len(index))
 print "(You can cancel any time. Next time you run, the script should resume at the last point.)"
 print
+
+
+# Prepare variables
+image_count_global = 0
+
 
 
 # Loop 1: Go through all the months
