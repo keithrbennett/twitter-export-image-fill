@@ -78,15 +78,23 @@ def read_index():
     sys.exit(-1)
 
 
+# Make a copy of the original JS file in backup_filename, just in case (only if it doesn't exist before)
+def create_filenames(year_str, month_str):
+  data_filename = 'data/js/tweets/%s_%s.js' % (year_str, month_str)
+
+  # Make a copy of the original JS file, just in case (only if it doesn't exist before)
+  backup_filename = 'data/js/tweets/%s_%s_original.js' % (year_str, month_str)
+  return [data_filename, backup_filename]
+
+
+
 def process_month(date):
 
-  try:
-    year_str = '%04d' % date['year']
-    month_str = '%02d' % date['month']
-    data_filename = 'data/js/tweets/%s_%s.js' % (year_str, month_str)
+  year_str = '%04d' % date['year']
+  month_str = '%02d' % date['month']
 
-    # Make a copy of the original JS file, just in case (only if it doesn't exist before)
-    backup_filename = 'data/js/tweets/%s_%s_original.js' % (year_str, month_str)
+  try:
+    data_filename, backup_filename = create_filenames(year_str, month_str)
     try:
       os.stat(backup_filename)
     except:
