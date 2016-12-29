@@ -19,6 +19,7 @@ For more information, please refer to <http://unlicense.org/>
 import argparse
 import json
 import os
+import pprint
 import re
 import sys
 import time
@@ -31,7 +32,8 @@ print "by Marcin Wichary (aresluna.org)"
 print "use --help to see options"
 print
 
-# Process arguments
+pprinter = pprint.PrettyPrinter(indent=4)
+
 
 def parse_arguments():
   parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
@@ -116,7 +118,10 @@ def read_month_data_file(data_filename):
 
 
 def media_already_downloaded(media):
-  return 'media_url_orig' in media.keys()
+  recorded_as_present = 'media_url_orig' in media.keys()
+  if recorded_as_present:
+    actually_present = os.path.isfile(media['media_url'])
+  return recorded_as_present and actually_present
 
 
 def process_month(date):
