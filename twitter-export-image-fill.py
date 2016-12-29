@@ -180,12 +180,7 @@ def process_month(date):
           # If using an earlier archive as a starting point, try to find the desired
           # image file there first, and copy it if present
           if earlier_archive_path:
-            try:
-              os.stat(earlier_archive_path + local_filename)
-            except:
-              pass
-            else:
-              can_be_copied = True
+            can_be_copied = os.path.isfile(earlier_archive_path + local_filename)
 
           sys.stdout.write("\r  [%i/%i] %s %s..." %
                            (tweet_count, tweet_count_for_month, "Copying" if can_be_copied else "Downloading", url))
