@@ -118,10 +118,7 @@ def read_month_data_file(data_filename):
 
 
 def media_already_downloaded(media):
-  recorded_as_present = 'media_url_orig' in media.keys()
-  if recorded_as_present:
-    actually_present = os.path.isfile(media['media_url'])
-  return recorded_as_present and actually_present
+  return os.path.isfile(media['media_url'])
 
 
 def process_month(date):
