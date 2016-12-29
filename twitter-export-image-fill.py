@@ -142,7 +142,7 @@ def download_file(url, local_filename):
       download_tries -= 1
       if download_tries == 0:
         print
-        print "Failed to download %s after 3 tries." % better_url
+        print "Failed to download %s after 3 tries." % url
         print "Please try again later?"
         sys.exit(-2)
       time.sleep(5)  # Wait 5 seconds before retrying
