@@ -121,6 +121,11 @@ def media_already_downloaded(media):
   return os.path.isfile(media['media_url'])
 
 
+def is_retweet(tweet):
+  return 'retweeted_status' in tweet.keys()
+
+
+
 def process_month(date):
 
   year_str = '%04d' % date['year']
@@ -144,10 +149,8 @@ def process_month(date):
     for tweet in data:
       tweet_count += 1
 
-      retweeted = 'retweeted_status' in tweet.keys()
-
       # Don't save images from retweets
-      if (not args.include_retweets) and retweeted:
+      if (not args.include_retweets) and is_retweet(tweet):
         continue
 
       if tweet['entities']['media']:
@@ -172,7 +175,7 @@ def process_month(date):
           better_url = url + ':orig'
 
           local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s.%s' % \
-                           (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
+                           (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
                             tweet_image_count, extension)
 
           can_be_copied = False
