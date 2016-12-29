@@ -183,7 +183,6 @@ def process_month(date):
                            (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
                             tweet_image_count, extension)
 
-          can_be_copied = False
           downloaded = False
           download_tries = 3
 
@@ -191,6 +190,8 @@ def process_month(date):
           # image file there first, and copy it if present
           if earlier_archive_path:
             can_be_copied = os.path.isfile(earlier_archive_path + local_filename)
+          else:
+            can_be_copied = False
 
           sys.stdout.write("\r  [%i/%i] %s %s..." %
                            (tweet_count, tweet_count_for_month, "Copying" if can_be_copied else "Downloading", url))
