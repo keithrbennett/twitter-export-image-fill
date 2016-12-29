@@ -114,6 +114,11 @@ def read_month_data_file(data_filename):
     return [data, first_data_line]
 
 
+
+def media_already_downloaded(media):
+  return 'media_url_orig' in media.keys()
+
+
 def process_month(date):
 
   year_str = '%04d' % date['year']
@@ -127,9 +132,6 @@ def process_month(date):
     # --------------------------------------------
 
     data, first_data_line = read_month_data_file(data_filename)
-
-
-
 
     tweet_count_for_month = len(data)
     image_count = 0
@@ -157,14 +159,11 @@ def process_month(date):
         # -------------------------------------------
 
         for media in tweet['entities']['media']:
-          # media_url_orig being present means we already processed/downloaded
-          # this file
-          if 'media_url_orig' in media.keys():
+          if media_already_downloaded(media):
             continue
 
           url = media['media_url_https']
           extension = re.match(r'(.*)\.([^.]*)$', url).group(2)
-
           mkdir_if_absent(media_directory_name)
 
           # Download the original/best image size, rather than the default one
