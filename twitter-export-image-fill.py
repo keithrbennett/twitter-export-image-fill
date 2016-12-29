@@ -131,6 +131,27 @@ def reformat_date_string(string):
   return string
 
 
+def download_file(url, local_filename):
+  downloaded = False
+  download_tries = 3
+  while not downloaded:
+    # Actually download the file!
+    try:
+      urllib.urlretrieve(url, local_filename)
+    except:
+      download_tries -= 1
+      if download_tries == 0:
+        print
+        print "Failed to download %s after 3 tries." % better_url
+        print "Please try again later?"
+        sys.exit(-2)
+      time.sleep(5)  # Wait 5 seconds before retrying
+    else:
+      return True
+# Move return to try block and remove else?
+# Replace downloaded var w/download_tries in while expression?
+
+
 def process_month(date):
 
   year_str = '%04d' % date['year']
@@ -201,20 +222,7 @@ def process_month(date):
           if can_be_copied:
             copyfile(earlier_archive_path + local_filename, local_filename)
           else:
-            while not downloaded:
-              # Actually download the file!
-              try:
-                urllib.urlretrieve(better_url, local_filename)
-              except:
-                download_tries -= 1
-                if download_tries == 0:
-                  print
-                  print "Failed to download %s after 3 tries." % better_url
-                  print "Please try again later?"
-                  sys.exit(-2)
-                time.sleep(5)  # Wait 5 seconds before retrying
-              else:
-                downloaded = True
+            download_file(better_url, local_filename)
 
           # Rewrite the original JSON file so that the archive's index.html
           # will now point to local files... and also so that the script can
