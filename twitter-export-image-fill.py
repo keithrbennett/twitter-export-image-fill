@@ -92,17 +92,17 @@ def create_filenames(year_str, month_str):
 
 
 def copy_file_if_absent(source, destination):
-    try:
-      os.stat(destination)
-    except:
-      copyfile(source, destination)
+  try:
+    os.stat(destination)
+  except:
+    copyfile(source, destination)
 
 
 def mkdir_if_absent(dir):
   try:
-      os.stat(dir)
+    os.stat(dir)
   except:
-      os.mkdir(dir)
+    os.mkdir(dir)
 
 
 def read_month_data_file(data_filename):
@@ -127,7 +127,7 @@ def is_retweet(tweet):
 
 def reformat_date_string(string):
   string = re.sub(r':', '.', string)
-  # string = re.sub(r' ', '_', string)
+  string = re.sub(r' ', '_', string)
   return string
 
 
