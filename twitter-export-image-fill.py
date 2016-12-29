@@ -164,15 +164,15 @@ def process_month(date):
     # Loop 2: Go through all the tweets in a month
     # --------------------------------------------
 
-    data, first_data_line = read_month_data_file(data_filename)
+    tweets_this_month, first_data_line = read_month_data_file(data_filename)
 
-    tweet_count_for_month = len(data)
+    tweet_count_for_month = len(tweets_this_month)
     image_count = 0
     tweet_count = 0
 
     print "%s/%s: %i tweets to process..." % (year_str, month_str, tweet_count_for_month)
 
-    for tweet in data:
+    for tweet in tweets_this_month:
       tweet_count += 1
 
       # Don't save images from retweets
@@ -204,9 +204,6 @@ def process_month(date):
                            (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
                             tweet_image_count, extension)
 
-          downloaded = False
-          download_tries = 3
-
           # If using an earlier archive as a starting point, try to find the desired
           # image file there first, and copy it if present
           if earlier_archive_path:
@@ -235,7 +232,7 @@ def process_month(date):
           data_filename_temp = 'data/js/tweets/%s_%s.js.tmp' % (year_str, month_str)
           with open(data_filename_temp, 'w') as f:
             f.write(first_data_line)
-            json.dump(data, f, indent=2)
+            json.dump(tweets_this_month, f, indent=2)
           os.remove(data_filename)
           os.rename(data_filename_temp, data_filename)
 
@@ -259,23 +256,30 @@ def process_month(date):
     sys.exit(-3)
 
 
-args = parse_arguments()
+def main():
 
-global earlier_archive_path
-earlier_archive_path = process_earlier_archive_path(args)
-tweets_by_month = read_index()
+  global args
+  args = parse_arguments()
 
-print "To process: %i months worth of tweets..." % (len(tweets_by_month))
-print "(You can cancel any time. Next time you run, the script should resume at the last point.)"
-print
+  global earlier_archive_path
+  earlier_archive_path = process_earlier_archive_path(args)
+  tweets_by_month = read_index()
 
-image_count = 0
-for month in tweets_by_month:
-  image_count += process_month(month)
+  print "To process: %i months worth of tweets..." % (len(tweets_by_month))
+  print "(You can cancel any time. Next time you run, the script should resume at the last point.)"
+  print
+
+  image_count = 0
+  for month in tweets_by_month:
+    image_count += process_month(month)
 
 
-# End loop 1 (all the months)
-print
-print "Done!"
-print "%i images downloaded in total." % image_count
-print
+  print
+  print "Done!"
+  print "%i images downloaded in total." % image_count
+  print
+
+
+# ========================
+main()
+# ========================
