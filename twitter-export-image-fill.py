@@ -125,6 +125,11 @@ def is_retweet(tweet):
   return 'retweeted_status' in tweet.keys()
 
 
+def reformat_date_string(string):
+  string = re.sub(r':', '.', string)
+  # string = re.sub(r' ', '_', string)
+  return string
+
 
 def process_month(date):
 
@@ -158,7 +163,7 @@ def process_month(date):
 
         # Rewrite tweet date to be used in the filename prefix
         # (only first 19 characters + replace colons with dots)
-        date = re.sub(r':', '.', tweet['created_at'][:19])
+        date = reformat_date_string(tweet['created_at'][:19])
 
         # Loop 3: Go through all the media in a tweet
         # -------------------------------------------
