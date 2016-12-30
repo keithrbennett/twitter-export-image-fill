@@ -35,6 +35,11 @@ print
 pprinter = pprint.PrettyPrinter(indent=4)
 
 
+def stdout_print(str):
+  sys.stdout.write("\r%s\033[K" % str)
+  sys.stdout.flush()
+
+
 def parse_arguments():
   parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
   parser.add_argument('--include-retweets', action='store_true',
@@ -170,7 +175,7 @@ def process_month(date):
     image_count = 0
     tweet_count = 0
 
-    print "%s/%s: %i tweets to process..." % (year_str, month_str, tweet_count_for_month)
+    stdout_print("%s/%s: %i tweets to process..." % (year_str, month_str, tweet_count_for_month))
 
     for tweet in tweets_this_month:
       tweet_count += 1
@@ -211,10 +216,8 @@ def process_month(date):
           else:
             can_be_copied = False
 
-          sys.stdout.write("\r  [%i/%i] %s %s..." %
-                           (tweet_count, tweet_count_for_month, "Copying" if can_be_copied else "Downloading", url))
-          sys.stdout.write("\033[K")  # Clear the end of the line
-          sys.stdout.flush()
+          stdout_print("  [%i/%i] %s %s..." %
+              (tweet_count, tweet_count_for_month, "Copying" if can_be_copied else "Downloading", url))
 
           if can_be_copied:
             copyfile(earlier_archive_path + local_filename, local_filename)
@@ -242,11 +245,9 @@ def process_month(date):
           # End loop 3 (images in a tweet)
 
     # End loop 2 (tweets in a month)
-    sys.stdout.write(
-      "\r%s/%s: %i tweets processed; %i images downloaded." % (year_str, month_str, tweet_count_for_month, image_count))
-    sys.stdout.write("\033[K")  # Clear the end of the line
-    sys.stdout.flush()
-    print
+
+    stdout_print(
+      "%s/%s: %i tweets processed; %i images downloaded.\n" % (year_str, month_str, tweet_count_for_month, image_count))
     return image_count
 
   # Nicer support for Ctrl-C
