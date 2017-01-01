@@ -172,7 +172,7 @@ def process_month(date):
     tweets_this_month, first_data_line = read_month_data_file(data_filename)
 
     tweet_count_for_month = len(tweets_this_month)
-    image_count = 0
+    image_count_for_month = 0
 
     stdout_print("%s/%s: %i tweets to process..." % (year_str, month_str, tweet_count_for_month))
 
@@ -183,7 +183,7 @@ def process_month(date):
         continue
 
       if tweet['entities']['media']:
-        tweet_image_count = 1
+        image_count_for_tweet = 1
 
         # Rewrite tweet date to be used in the filename prefix
         # (only first 19 characters + replace colons with dots)
@@ -205,7 +205,7 @@ def process_month(date):
 
           local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s.%s' % \
                            (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
-                            tweet_image_count, extension)
+                            image_count_for_tweet, extension)
 
           # If using an earlier archive as a starting point, try to find the desired
           # image file there first, and copy it if present
@@ -237,16 +237,17 @@ def process_month(date):
           os.remove(data_filename)
           os.rename(data_filename_temp, data_filename)
 
-          tweet_image_count += 1
-          image_count += 1
+          image_count_for_tweet += 1
+          image_count_for_month += 1
 
           # End loop 3 (images in a tweet)
 
     # End loop 2 (tweets in a month)
 
     stdout_print(
-      "%s/%s: %i tweets processed; %i images downloaded.\n" % (year_str, month_str, tweet_count_for_month, image_count))
-    return image_count
+        "%s/%s: %i tweets processed; %i images downloaded.\n"
+        % (year_str, month_str, tweet_count_for_month, image_count_for_month))
+    return image_count_for_month
 
   # Nicer support for Ctrl-C
   except KeyboardInterrupt:
@@ -262,20 +263,21 @@ def main():
 
   global earlier_archive_path
   earlier_archive_path = process_earlier_archive_path(args)
+
   tweets_by_month = read_index()
 
   print "To process: %i months worth of tweets..." % (len(tweets_by_month))
   print "(You can cancel any time. Next time you run, the script should resume at the last point.)"
   print
 
-  image_count = 0
+  total_image_count = 0
   for month in tweets_by_month:
-    image_count += process_month(month)
+    total_image_count += process_month(month)
 
 
   print
   print "Done!"
-  print "%i images downloaded in total." % image_count
+  print "%i images downloaded in total." % total_image_count
   print
 
 
