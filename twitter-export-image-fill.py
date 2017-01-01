@@ -173,12 +173,10 @@ def process_month(date):
 
     tweet_count_for_month = len(tweets_this_month)
     image_count = 0
-    tweet_count = 0
 
     stdout_print("%s/%s: %i tweets to process..." % (year_str, month_str, tweet_count_for_month))
 
-    for tweet in tweets_this_month:
-      tweet_count += 1
+    for tweet_count, tweet in enumerate(tweets_this_month):
 
       # Don't save images from retweets
       if (not args.include_retweets) and is_retweet(tweet):
