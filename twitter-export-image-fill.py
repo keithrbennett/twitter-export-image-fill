@@ -176,7 +176,7 @@ def process_month(date):
 
     stdout_print("%s/%s: %i tweets to process..." % (year_str, month_str, tweet_count_for_month))
 
-    for tweet_count, tweet in enumerate(tweets_this_month):
+    for tweet_num, tweet in enumerate(tweets_this_month):
 
       # Don't save images from retweets
       if (not args.include_retweets) and is_retweet(tweet):
@@ -215,7 +215,7 @@ def process_month(date):
             can_be_copied = False
 
           stdout_print("  [%i/%i] %s %s..." %
-              (tweet_count, tweet_count_for_month, "Copying" if can_be_copied else "Downloading", url))
+              (tweet_num, tweet_count_for_month, "Copying" if can_be_copied else "Downloading", url))
 
           if can_be_copied:
             copyfile(earlier_archive_path + local_filename, local_filename)
