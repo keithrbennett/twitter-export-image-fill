@@ -193,56 +193,55 @@ def process_month(date):
         # -------------------------------------------
 
         for media in tweet['entities']['media']:
-          if media_already_downloaded(media):
-            continue
+          if not media_already_downloaded(media):
 
-          url = media['media_url_https']
-          extension = re.match(r'(.*)\.([^.]*)$', url).group(2)
-          mkdir_if_absent(media_directory_name)
+            url = media['media_url_https']
+            extension = re.match(r'(.*)\.([^.]*)$', url).group(2)
+            mkdir_if_absent(media_directory_name)
 
-          # Download the original/best image size, rather than the default one
-          better_url = url + ':orig'
+            # Download the original/best image size, rather than the default one
+            better_url = url + ':orig'
 
-          local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s.%s' % \
-                           (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
-                            image_count_for_tweet, extension)
+            local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s.%s' % \
+                             (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
+                              image_count_for_tweet, extension)
 
-          # If using an earlier archive as a starting point, try to find the desired
-          # image file there first, and copy it if present
-          if earlier_archive_path:
-            can_be_copied = os.path.isfile(earlier_archive_path + local_filename)
-          else:
-            can_be_copied = False
+            # If using an earlier archive as a starting point, try to find the desired
+            # image file there first, and copy it if present
+            if earlier_archive_path:
+              can_be_copied = os.path.isfile(earlier_archive_path + local_filename)
+            else:
+              can_be_copied = False
 
-          stdout_print("  [%i/%i] %s %s..." %
-              (tweet_num, tweet_count_for_month, "Copying" if can_be_copied else "Downloading", url))
+            stdout_print("  [%i/%i] %s %s..." %
+                (tweet_num, tweet_count_for_month, "Copying" if can_be_copied else "Downloading", url))
 
-          if can_be_copied:
-            copyfile(earlier_archive_path + local_filename, local_filename)
-          else:
-            download_file(better_url, local_filename)
+            if can_be_copied:
+              copyfile(earlier_archive_path + local_filename, local_filename)
+            else:
+              download_file(better_url, local_filename)
 
-          # Rewrite the original JSON file so that the archive's index.html
-          # will now point to local files... and also so that the script can
-          # continue from last point
-          media['media_url_orig'] = media['media_url']
-          media['media_url'] = local_filename
+            # Rewrite the original JSON file so that the archive's index.html
+            # will now point to local files... and also so that the script can
+            # continue from last point
+            media['media_url_orig'] = media['media_url']
+            media['media_url'] = local_filename
 
-          # Writing to a separate file so that we can only copy over the
-          # main file when done
-          data_filename_temp = 'data/js/tweets/%s_%s.js.tmp' % (year_str, month_str)
-          with open(data_filename_temp, 'w') as f:
-            f.write(first_data_line)
-            json.dump(tweets_this_month, f, indent=2)
-          os.remove(data_filename)
-          os.rename(data_filename_temp, data_filename)
+            # Writing to a separate file so that we can only copy over the
+            # main file when done
+            data_filename_temp = 'data/js/tweets/%s_%s.js.tmp' % (year_str, month_str)
+            with open(data_filename_temp, 'w') as f:
+              f.write(first_data_line)
+              json.dump(tweets_this_month, f, indent=2)
+            os.remove(data_filename)
+            os.rename(data_filename_temp, data_filename)
 
-          image_count_for_tweet += 1
-          image_count_for_month += 1
+            image_count_for_tweet += 1
+            image_count_for_month += 1
 
-          # End loop 3 (images in a tweet)
+        # End loop (images in a tweet)
 
-    # End loop 2 (tweets in a month)
+    # End loop (tweets in a month)
 
     stdout_print(
         "%s/%s: %i tweets processed; %i images downloaded.\n"
