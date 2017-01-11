@@ -175,6 +175,17 @@ def media_locators(tweet, media, date, date_str, image_count_for_tweet):
   return [media_url, media_url_original_resolution, local_filename]
 
 
+def rewrite_js_file(data_filename, first_data_line, tweets_this_month, date):
+  # Writing to a separate file so that we can only copy over the
+  # main file when done
+  data_filename_temp = os.path.join("data", "js", "tweets", "%s.js.tmp" % (year_month_str(date)))
+  with open(data_filename_temp, 'w') as f:
+    f.write(first_data_line)
+    json.dump(tweets_this_month, f, indent=2)
+  os.remove(data_filename)
+  os.rename(data_filename_temp, data_filename)
+
+
 def process_month(date):
 
   year_month_display_str = "%04d/%02d" % (date['year'], date['month'])
@@ -240,14 +251,7 @@ def process_month(date):
           media['media_url_orig'] = media['media_url']
           media['media_url'] = local_filename
 
-          # Writing to a separate file so that we can only copy over the
-          # main file when done
-          data_filename_temp = os.path.join("data", "js", "tweets", "%s.js.tmp" % (year_month_str(date)))
-          with open(data_filename_temp, 'w') as f:
-            f.write(first_data_line)
-            json.dump(tweets_this_month, f, indent=2)
-          os.remove(data_filename)
-          os.rename(data_filename_temp, data_filename)
+          rewrite_js_file(data_filename, first_data_line, tweets_this_month, date)
 
           image_count_for_tweet += 1
           image_count_downloaded_for_month += 1
