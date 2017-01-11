@@ -187,11 +187,12 @@ def process_month(date):
 
     stdout_print("%s: %i tweets to process..." % (year_month_display_str, tweet_count_for_month))
 
-    for tweet_num, tweet in enumerate(tweets_this_month):
-
+    tweets_to_process = tweets_this_month
+    if not args.include_retweets:
       # Don't save images from retweets
-      if (not args.include_retweets) and is_retweet(tweet):
-        continue
+      tweets_to_process = filter(lambda tweet: not is_retweet(tweet), tweets_to_process)
+
+    for tweet_num, tweet in enumerate(tweets_to_process):
 
       if tweet['entities']['media']:
         image_count_for_tweet = 1
@@ -200,15 +201,12 @@ def process_month(date):
         # (only first 19 characters)
         date_str = reformat_date_string_for_filename(tweet['created_at'][:19])
 
-        # Loop 3: Go through all the media in a tweet
-        # -------------------------------------------
-
-        tweets_to_download = filter(
+        media_to_download = filter(
           lambda media: not media_already_downloaded(media),
           tweet['entities']['media']
         )
 
-        for media in tweets_to_download:
+        for media in media_to_download:
           media_url = media['media_url_https']
           extension = os.path.splitext(media_url)[1]
 
@@ -219,7 +217,7 @@ def process_month(date):
 
           local_filename = os.path.join("data", "js", "tweets",
                   "%s_media" % (year_month_str(date)),
-                  "%s-%s-%s%s%s" % (date_str, tweet['id'], ('rt-' if is_retweet(tweet) else ''),
+                  "%s-%s-%s%d%s" % (date_str, tweet['id'], ('rt-' if is_retweet(tweet) else ''),
                   image_count_for_tweet, extension))
 
           # If using an earlier archive as a starting point, try to find the desired
