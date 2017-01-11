@@ -59,15 +59,16 @@ def parse_arguments():
 # If an earlier archive has been specified, check whether or not it actually exists
 # (This is important because failure would mean quietly downloading all the files again)
 def process_earlier_archive_path(args):
-  if args.EARLIER_ARCHIVE_PATH:
+
+  earlier_archive_path = args.EARLIER_ARCHIVE_PATH
+
+  if earlier_archive_path:
     try:
-      os.stat(os.path.join(args.EARLIER_ARCHIVE_PATH, "data", "js", "tweet_index.js"))
+      os.stat(os.path.join(earlier_archive_path, "data", "js", "tweet_index.js"))
     except:
       print "Could not find the earlier archive!"
       print "Make sure you're pointing at the directory that contains the index.html file."
       sys.exit(-4)
-  else:
-    earlier_archive_path = None
 
   return earlier_archive_path
 
@@ -220,7 +221,7 @@ def process_month(date):
             # If using an earlier archive as a starting point, try to find the desired
             # image file there first, and copy it if present
             if earlier_archive_path:
-              can_be_copied = os.path.isfile(earlier_archive_path + local_filename)
+              can_be_copied = os.path.isfile(os.path.join(earlier_archive_path, local_filename))
             else:
               can_be_copied = False
 
