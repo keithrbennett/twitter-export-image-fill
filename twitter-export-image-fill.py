@@ -182,15 +182,16 @@ def process_month(date):
 
     tweets_this_month, first_data_line = read_month_data_file(data_filename)
 
-    tweet_count_for_month = len(tweets_this_month)
-    image_count_for_month = 0
-
-    stdout_print("%s: %i tweets to process..." % (year_month_display_str, tweet_count_for_month))
+    image_count_downloaded_for_month = 0
 
     tweets_to_process = tweets_this_month
+
+
     if not args.include_retweets:
       # Don't save images from retweets
       tweets_to_process = filter(lambda tweet: not is_retweet(tweet), tweets_to_process)
+    tweet_count_to_process = len(tweets_to_process)
+    stdout_print("%s: %i tweets to process..." % (year_month_display_str, tweet_count_to_process))
 
     for tweet_num, tweet in enumerate(tweets_to_process):
 
@@ -225,10 +226,10 @@ def process_month(date):
           can_be_copied = earlier_archive_path and os.path.isfile(os.path.join(earlier_archive_path, local_filename))
 
           stdout_print("  [%i/%i] %s %s..." %
-              (tweet_num, tweet_count_for_month, "Copying" if can_be_copied else "Downloading", media_url))
+              (tweet_num, tweet_count_to_process, "Copying" if can_be_copied else "Downloading", media_url))
 
           if can_be_copied:
-            copyfile(earlier_archive_path + local_filename, local_filename)
+            copyfile(os.path.join(earlier_archive_path, local_filename), local_filename)
           else:
             download_file(media_url_original_resolution, local_filename)
 
@@ -248,7 +249,7 @@ def process_month(date):
           os.rename(data_filename_temp, data_filename)
 
           image_count_for_tweet += 1
-          image_count_for_month += 1
+          image_count_downloaded_for_month += 1
 
         # End loop (images in a tweet)
 
@@ -257,8 +258,8 @@ def process_month(date):
 
     stdout_print(
         "%s: %4i tweets processed, %4i images downloaded.\n"
-        % (year_month_display_str, tweet_count_for_month, image_count_for_month))
-    return image_count_for_month
+        % (year_month_display_str, tweet_count_to_process, image_count_downloaded_for_month))
+    return image_count_downloaded_for_month
 
   # Nicer support for Ctrl-C
   except KeyboardInterrupt:
