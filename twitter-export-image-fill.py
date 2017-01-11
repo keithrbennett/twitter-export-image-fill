@@ -204,50 +204,51 @@ def process_month(date):
         # -------------------------------------------
 
         for media in tweet['entities']['media']:
-          if not media_already_downloaded(media):
+          if media_already_downloaded(media):
+            continue
 
-            media_url = media['media_url_https']
-            extension = os.path.splitext(media_url)[1]
+          media_url = media['media_url_https']
+          extension = os.path.splitext(media_url)[1]
 
-            mkdir_if_absent(media_directory_name)
+          mkdir_if_absent(media_directory_name)
 
-            # Download the original/best image size, rather than the default one
-            media_url_original_resolution = media_url + ':orig'
+          # Download the original/best image size, rather than the default one
+          media_url_original_resolution = media_url + ':orig'
 
-            local_filename = os.path.join("data", "js", "tweets",
-                    "%s_media" % (year_month_str(date)),
-                    "%s-%s-%s%s%s" % (date_str, tweet['id'], ('rt-' if is_retweet(tweet) else ''),
-                    image_count_for_tweet, extension))
+          local_filename = os.path.join("data", "js", "tweets",
+                  "%s_media" % (year_month_str(date)),
+                  "%s-%s-%s%s%s" % (date_str, tweet['id'], ('rt-' if is_retweet(tweet) else ''),
+                  image_count_for_tweet, extension))
 
-            # If using an earlier archive as a starting point, try to find the desired
-            # image file there first, and copy it if present
-            can_be_copied = earlier_archive_path and os.path.isfile(os.path.join(earlier_archive_path, local_filename))
+          # If using an earlier archive as a starting point, try to find the desired
+          # image file there first, and copy it if present
+          can_be_copied = earlier_archive_path and os.path.isfile(os.path.join(earlier_archive_path, local_filename))
 
-            stdout_print("  [%i/%i] %s %s..." %
-                (tweet_num, tweet_count_for_month, "Copying" if can_be_copied else "Downloading", media_url))
+          stdout_print("  [%i/%i] %s %s..." %
+              (tweet_num, tweet_count_for_month, "Copying" if can_be_copied else "Downloading", media_url))
 
-            if can_be_copied:
-              copyfile(earlier_archive_path + local_filename, local_filename)
-            else:
-              download_file(media_url_original_resolution, local_filename)
+          if can_be_copied:
+            copyfile(earlier_archive_path + local_filename, local_filename)
+          else:
+            download_file(media_url_original_resolution, local_filename)
 
-            # Rewrite the original JSON file so that the archive's index.html
-            # will now point to local files... and also so that the script can
-            # continue from last point
-            media['media_url_orig'] = media['media_url']
-            media['media_url'] = local_filename
+          # Rewrite the original JSON file so that the archive's index.html
+          # will now point to local files... and also so that the script can
+          # continue from last point
+          media['media_url_orig'] = media['media_url']
+          media['media_url'] = local_filename
 
-            # Writing to a separate file so that we can only copy over the
-            # main file when done
-            data_filename_temp = os.path.join("data", "js", "tweets", "%s.js.tmp" % (year_month_str(date)))
-            with open(data_filename_temp, 'w') as f:
-              f.write(first_data_line)
-              json.dump(tweets_this_month, f, indent=2)
-            os.remove(data_filename)
-            os.rename(data_filename_temp, data_filename)
+          # Writing to a separate file so that we can only copy over the
+          # main file when done
+          data_filename_temp = os.path.join("data", "js", "tweets", "%s.js.tmp" % (year_month_str(date)))
+          with open(data_filename_temp, 'w') as f:
+            f.write(first_data_line)
+            json.dump(tweets_this_month, f, indent=2)
+          os.remove(data_filename)
+          os.rename(data_filename_temp, data_filename)
 
-            image_count_for_tweet += 1
-            image_count_for_month += 1
+          image_count_for_tweet += 1
+          image_count_for_month += 1
 
         # End loop (images in a tweet)
 
