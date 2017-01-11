@@ -196,13 +196,14 @@ def process_month(date):
           if not media_already_downloaded(media):
 
             url = media['media_url_https']
-            extension = re.match(r'(.*)\.([^.]*)$', url).group(2)
+            extension = os.path.splitext(url)[1]
+
             mkdir_if_absent(media_directory_name)
 
             # Download the original/best image size, rather than the default one
             better_url = url + ':orig'
 
-            local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s.%s' % \
+            local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s%s' % \
                              (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
                               image_count_for_tweet, extension)
 
