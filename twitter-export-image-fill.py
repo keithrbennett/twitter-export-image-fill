@@ -114,9 +114,7 @@ def copy_file_if_absent(source, destination):
 
 
 def mkdir_if_absent(dir):
-  try:
-    os.stat(dir)
-  except:
+  if not os.path.exists(dir):
     os.mkdir(dir)
 
 
@@ -207,11 +205,13 @@ def process_month(date):
           tweet['entities']['media']
         )
 
+        if len(media_to_download) > 0:
+          mkdir_if_absent(media_directory_name)
+
+
         for media in media_to_download:
           media_url = media['media_url_https']
           extension = os.path.splitext(media_url)[1]
-
-          mkdir_if_absent(media_directory_name)
 
           # Download the original/best image size, rather than the default one
           media_url_original_resolution = media_url + ':orig'
