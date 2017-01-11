@@ -53,10 +53,8 @@ def parse_arguments():
 # (This is important because failure would mean quietly downloading all the files again)
 def process_earlier_archive_path(args):
   if args.EARLIER_ARCHIVE_PATH:
-    earlier_archive_path = args.EARLIER_ARCHIVE_PATH
-    earlier_archive_path = earlier_archive_path.rstrip('/') + '/'
     try:
-      os.stat(earlier_archive_path + '/data/js/tweet_index.js')
+      os.stat(os.path.join(args.EARLIER_ARCHIVE_PATH, "data", "js", "tweet_index.js"))
     except:
       print "Could not find the earlier archive!"
       print "Make sure you're pointing at the directory that contains the index.html file."
@@ -69,7 +67,7 @@ def process_earlier_archive_path(args):
 
 # Process the index file to see what needs to be done
 def read_index():
-  index_filename = "data/js/tweet_index.js"
+  index_filename =  os.path.join("data", "js", "tweet_index.js")
   try:
     with open(index_filename) as index_file:
       index_str = index_file.read()
@@ -87,11 +85,15 @@ def read_index():
 
 # Make a copy of the original JS file in backup_filename, just in case (only if it doesn't exist before)
 def create_filenames(year_str, month_str):
-  data_filename = 'data/js/tweets/%s_%s.js' % (year_str, month_str)
+  year_month_str = "%s_%s" % (year_str, month_str)
+  tweet_dir = os.path.join("data", "js", "tweets")
+
+  data_filename = os.path.join(tweet_dir, "%s.js" % (year_month_str))
 
   # Make a copy of the original JS file, just in case (only if it doesn't exist before)
-  backup_filename = 'data/js/tweets/%s_%s_original.js' % (year_str, month_str)
-  media_directory_name = 'data/js/tweets/%s_%s_media' % (year_str, month_str)
+  backup_filename = os.path.join(tweet_dir, "%s_original.js" % (year_month_str))
+
+  media_directory_name = os.path.join(tweet_dir, "%s_media" % (year_month_str))
 
   return [data_filename, backup_filename, media_directory_name]
 
@@ -203,9 +205,10 @@ def process_month(date):
             # Download the original/best image size, rather than the default one
             better_url = url + ':orig'
 
-            local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s%s' % \
-                             (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
-                              image_count_for_tweet, extension)
+            local_filename = os.path.join("data", "js", "tweets",
+                    "%s_%s_media" % (year_str, month_str),
+                    "%s-%s-%s%s%s" % (date, tweet['id'], ('rt-' if is_retweet(tweet) else ''),
+                              image_count_for_tweet, extension))
 
             # If using an earlier archive as a starting point, try to find the desired
             # image file there first, and copy it if present
@@ -230,7 +233,7 @@ def process_month(date):
 
             # Writing to a separate file so that we can only copy over the
             # main file when done
-            data_filename_temp = 'data/js/tweets/%s_%s.js.tmp' % (year_str, month_str)
+            data_filename_temp = os.path.join("data", "js", "tweets", "%s_%s.js.tmp" % (year_str, month_str))
             with open(data_filename_temp, 'w') as f:
               f.write(first_data_line)
               json.dump(tweets_this_month, f, indent=2)
