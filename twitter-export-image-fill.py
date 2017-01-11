@@ -113,11 +113,6 @@ def copy_file_if_absent(source, destination):
     copyfile(source, destination)
 
 
-def mkdir_if_absent(dir):
-  if not os.path.exists(dir):
-    os.mkdir(dir)
-
-
 def read_month_data_file(data_filename):
   with open(data_filename) as data_file:
     data_str = data_file.read()
@@ -127,7 +122,6 @@ def read_month_data_file(data_filename):
     data_str = re.sub(first_data_line, '', data_str)
     data = json.loads(data_str)
     return [data, first_data_line]
-
 
 
 def media_already_downloaded(media):
@@ -205,9 +199,8 @@ def process_month(date):
           tweet['entities']['media']
         )
 
-        if len(media_to_download) > 0:
-          mkdir_if_absent(media_directory_name)
-
+        if len(media_to_download) > 0 and not os.path.exists(media_directory_name):
+          os.mkdir(media_directory_name)
 
         for media in media_to_download:
           media_url = media['media_url_https']
