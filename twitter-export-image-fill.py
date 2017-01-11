@@ -160,6 +160,21 @@ def download_file(url, local_filename):
 # Replace downloaded var w/download_tries in while expression?
 
 
+def media_locators(tweet, media, date, date_str, image_count_for_tweet):
+  media_url = media['media_url_https']
+
+  extension = os.path.splitext(media_url)[1]
+
+  # Download the original/best image size, rather than the default one
+  media_url_original_resolution = media_url + ':orig'
+
+  local_filename = os.path.join("data", "js", "tweets",
+                                "%s_media" % (year_month_str(date)),
+                                "%s-%s-%s%d%s" % (date_str, tweet['id'], ('rt-' if is_retweet(tweet) else ''),
+                                                  image_count_for_tweet, extension))
+  return [media_url, media_url_original_resolution, local_filename]
+
+
 def process_month(date):
 
   year_month_display_str = "%04d/%02d" % (date['year'], date['month'])
@@ -203,16 +218,9 @@ def process_month(date):
           os.mkdir(media_directory_name)
 
         for media in media_to_download:
-          media_url = media['media_url_https']
-          extension = os.path.splitext(media_url)[1]
 
-          # Download the original/best image size, rather than the default one
-          media_url_original_resolution = media_url + ':orig'
-
-          local_filename = os.path.join("data", "js", "tweets",
-                  "%s_media" % (year_month_str(date)),
-                  "%s-%s-%s%d%s" % (date_str, tweet['id'], ('rt-' if is_retweet(tweet) else ''),
-                  image_count_for_tweet, extension))
+          media_url, media_url_original_resolution, local_filename = \
+              media_locators(tweet, media, date, date_str, image_count_for_tweet)
 
           # If using an earlier archive as a starting point, try to find the desired
           # image file there first, and copy it if present
@@ -228,7 +236,7 @@ def process_month(date):
 
           # Rewrite the original JSON file so that the archive's index.html
           # will now point to local files... and also so that the script can
-          # continue from last point
+          # continue from last point.
           media['media_url_orig'] = media['media_url']
           media['media_url'] = local_filename
 
