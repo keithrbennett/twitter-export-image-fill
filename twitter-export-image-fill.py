@@ -203,10 +203,12 @@ def process_month(date):
         # Loop 3: Go through all the media in a tweet
         # -------------------------------------------
 
-        for media in tweet['entities']['media']:
-          if media_already_downloaded(media):
-            continue
+        tweets_to_download = filter(
+          lambda media: not media_already_downloaded(media),
+          tweet['entities']['media']
+        )
 
+        for media in tweets_to_download:
           media_url = media['media_url_https']
           extension = os.path.splitext(media_url)[1]
 
