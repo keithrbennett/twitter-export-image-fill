@@ -40,6 +40,13 @@ def stdout_print(str):
   sys.stdout.flush()
 
 
+def year_month_str(date):
+
+  year_str = '%04d' % date['year']
+  month_str = '%02d' % date['month']
+  return "%s_%s" % (year_str, month_str)
+
+
 def parse_arguments():
   parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
   parser.add_argument('--include-retweets', action='store_true',
@@ -71,6 +78,7 @@ def read_index():
   try:
     with open(index_filename) as index_file:
       index_str = index_file.read()
+
       index_str = re.sub(r'var tweet_index =', '', index_str)
       index = json.loads(index_str)
       return index
@@ -84,16 +92,15 @@ def read_index():
 
 
 # Make a copy of the original JS file in backup_filename, just in case (only if it doesn't exist before)
-def create_filenames(year_str, month_str):
-  year_month_str = "%s_%s" % (year_str, month_str)
-  tweet_dir = os.path.join("data", "js", "tweets")
+def create_filenames(date):
+  ym_str = year_month_str(date)
 
-  data_filename = os.path.join(tweet_dir, "%s.js" % (year_month_str))
+  data_filename = os.path.join(tweet_dir, "%s.js" % (ym_str))
 
   # Make a copy of the original JS file, just in case (only if it doesn't exist before)
-  backup_filename = os.path.join(tweet_dir, "%s_original.js" % (year_month_str))
+  backup_filename = os.path.join(tweet_dir, "%s_original.js" % (ym_str))
 
-  media_directory_name = os.path.join(tweet_dir, "%s_media" % (year_month_str))
+  media_directory_name = os.path.join(tweet_dir, "%s_media" % (ym_str))
 
   return [data_filename, backup_filename, media_directory_name]
 
@@ -161,11 +168,9 @@ def download_file(url, local_filename):
 
 def process_month(date):
 
-  year_str = '%04d' % date['year']
-  month_str = '%02d' % date['month']
-
   try:
-    data_filename, backup_filename, media_directory_name = create_filenames(year_str, month_str)
+    data_filename, backup_filename, media_directory_name = create_filenames(date)
+
     copy_file_if_absent(data_filename, backup_filename)
 
     # Loop 2: Go through all the tweets in a month
@@ -176,7 +181,7 @@ def process_month(date):
     tweet_count_for_month = len(tweets_this_month)
     image_count_for_month = 0
 
-    stdout_print("%s/%s: %i tweets to process..." % (year_str, month_str, tweet_count_for_month))
+    stdout_print("%s/%s: %i tweets to process..." % (date['year'], date['month'], tweet_count_for_month))
 
     for tweet_num, tweet in enumerate(tweets_this_month):
 
@@ -189,7 +194,7 @@ def process_month(date):
 
         # Rewrite tweet date to be used in the filename prefix
         # (only first 19 characters + replace colons with dots)
-        date = reformat_date_string(tweet['created_at'][:19])
+        date_str = reformat_date_string(tweet['created_at'][:19])
 
         # Loop 3: Go through all the media in a tweet
         # -------------------------------------------
@@ -206,9 +211,9 @@ def process_month(date):
             better_url = url + ':orig'
 
             local_filename = os.path.join("data", "js", "tweets",
-                    "%s_%s_media" % (year_str, month_str),
-                    "%s-%s-%s%s%s" % (date, tweet['id'], ('rt-' if is_retweet(tweet) else ''),
-                              image_count_for_tweet, extension))
+                    "%s_media" % (year_month_str(date)),
+                    "%s-%s-%s%s%s" % (date_str, tweet['id'], ('rt-' if is_retweet(tweet) else ''),
+                    image_count_for_tweet, extension))
 
             # If using an earlier archive as a starting point, try to find the desired
             # image file there first, and copy it if present
@@ -233,7 +238,7 @@ def process_month(date):
 
             # Writing to a separate file so that we can only copy over the
             # main file when done
-            data_filename_temp = os.path.join("data", "js", "tweets", "%s_%s.js.tmp" % (year_str, month_str))
+            data_filename_temp = os.path.join("data", "js", "tweets", "%s.js.tmp" % (year_month_str(date)))
             with open(data_filename_temp, 'w') as f:
               f.write(first_data_line)
               json.dump(tweets_this_month, f, indent=2)
@@ -247,9 +252,10 @@ def process_month(date):
 
     # End loop (tweets in a month)
 
+
     stdout_print(
         "%s/%s: %i tweets processed; %i images downloaded.\n"
-        % (year_str, month_str, tweet_count_for_month, image_count_for_month))
+        % (date['year'], date['month'], tweet_count_for_month, image_count_for_month))
     return image_count_for_month
 
   # Nicer support for Ctrl-C
@@ -260,6 +266,9 @@ def process_month(date):
 
 
 def main():
+
+  global tweet_dir
+  tweet_dir = os.path.join("data", "js", "tweets")
 
   global args
   args = parse_arguments()
