@@ -168,6 +168,8 @@ def download_file(url, local_filename):
 
 def process_month(date):
 
+  year_month_display_str = "%04d/%02d" % (date['year'], date['month'])
+
   try:
     data_filename, backup_filename, media_directory_name = create_filenames(date)
 
@@ -181,7 +183,7 @@ def process_month(date):
     tweet_count_for_month = len(tweets_this_month)
     image_count_for_month = 0
 
-    stdout_print("%s/%s: %i tweets to process..." % (date['year'], date['month'], tweet_count_for_month))
+    stdout_print("%s: %i tweets to process..." % (year_month_display_str, tweet_count_for_month))
 
     for tweet_num, tweet in enumerate(tweets_this_month):
 
@@ -254,8 +256,8 @@ def process_month(date):
 
 
     stdout_print(
-        "%s/%s: %i tweets processed; %i images downloaded.\n"
-        % (date['year'], date['month'], tweet_count_for_month, image_count_for_month))
+        "%s: %4i tweets processed, %4i images downloaded.\n"
+        % (year_month_display_str, tweet_count_for_month, image_count_for_month))
     return image_count_for_month
 
   # Nicer support for Ctrl-C
