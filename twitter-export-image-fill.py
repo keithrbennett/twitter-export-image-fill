@@ -132,24 +132,21 @@ def reformat_date_string_for_filename(string):
 
 
 def download_file(url, local_filename):
-  downloaded = False
+
   download_tries = 3
-  while not downloaded:
+  for i in range(1, download_tries + 1):
     try:
       # Actually download the file!
       urllib.urlretrieve(url, local_filename)
+      return True
     except:
-      download_tries -= 1
-      if download_tries == 0:
+      if i < download_tries:
+        time.sleep(5)  # Wait 5 seconds before retrying
+      else:
         print
         print "Failed to download %s after 3 tries." % url
         print "Please try again later?"
         sys.exit(error_codes['DOWNLOAD_FAILED'])
-      time.sleep(5)  # Wait 5 seconds before retrying
-    else:
-      return True
-# Move return to try block and remove else?
-# Replace downloaded var w/download_tries in while expression?
 
 
 def media_locators(tweet, media, date, date_str, image_count_for_tweet):
