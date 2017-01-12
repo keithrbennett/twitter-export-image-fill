@@ -64,22 +64,19 @@ def process_earlier_archive_path(args):
 
   earlier_archive_path = args.EARLIER_ARCHIVE_PATH
 
-  if earlier_archive_path:
-    try:
-      os.stat(os.path.join(earlier_archive_path, "data", "js", "tweet_index.js"))
-    except:
-      print "Could not find the earlier archive!"
-      print "Make sure you're pointing at the directory that contains the index.html file."
-      sys.exit(error_codes['EARLIER_ARCHIVE_MISSING'])
+  if earlier_archive_path and not os.path.exists(
+          os.path.join(earlier_archive_path, tweet_index_filespec)):
+    print "Could not find the earlier archive!"
+    print "Make sure you're pointing at the directory that contains the index.html file."
+    sys.exit(error_codes['EARLIER_ARCHIVE_MISSING'])
 
   return earlier_archive_path
 
 
 # Process the index file to see what needs to be done
 def read_index():
-  index_filename =  os.path.join("data", "js", "tweet_index.js")
   try:
-    with open(index_filename) as index_file:
+    with open(tweet_index_filespec) as index_file:
       index_str = index_file.read()
       index_str = re.sub(r'var tweet_index =', '', index_str)
       index = json.loads(index_str)
@@ -272,6 +269,9 @@ def setup_globals():
 
   global tweet_dir
   tweet_dir = os.path.join("data", "js", "tweets")
+
+  global tweet_index_filespec
+  tweet_index_filespec = os.path.join("data", "js", "tweet_index.js")
 
   global args
   args = parse_arguments()
