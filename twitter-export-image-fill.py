@@ -181,6 +181,32 @@ def rewrite_js_file(data_filename, first_data_line, tweets_this_month, date):
   os.rename(data_filename_temp, data_filename)
 
 
+def process_tweet_image(tweet, media, date, date_str, tweet_image_num, tweet_num, tweet_count_to_process):
+
+  media_url, media_url_original_resolution, local_filename = \
+    media_locators(tweet, media, date, date_str, tweet_image_num)
+
+  # If using an earlier archive as a starting point, try to find the desired
+  # image file there first, and copy it if present
+  can_be_copied = earlier_archive_path and os.path.isfile(os.path.join(earlier_archive_path, local_filename))
+
+  stdout_print("  [%i/%i] %s %s..." %
+               (tweet_num, tweet_count_to_process, "Copying" if can_be_copied else "Downloading", media_url))
+
+  if can_be_copied:
+    copyfile(os.path.join(earlier_archive_path, local_filename), local_filename)
+  else:
+    download_file(media_url_original_resolution, local_filename)
+
+  tweet_image_num += 1
+
+  # Rewrite the data so that the archive's index.html
+  # will now point to local files... and also so that the script can
+  # continue from last point.
+  media['media_url_orig'] = media['media_url']
+  media['media_url'] = local_filename
+
+
 def process_tweet(tweet, tweet_num, media_directory_name, date, tweet_count_to_process):
   if not tweet['entities']['media']:
     return 0
@@ -200,29 +226,7 @@ def process_tweet(tweet, tweet_num, media_directory_name, date, tweet_count_to_p
     os.mkdir(media_directory_name)
 
   for media in media_to_download:
-
-    media_url, media_url_original_resolution, local_filename = \
-      media_locators(tweet, media, date, date_str, tweet_image_num)
-
-    # If using an earlier archive as a starting point, try to find the desired
-    # image file there first, and copy it if present
-    can_be_copied = earlier_archive_path and os.path.isfile(os.path.join(earlier_archive_path, local_filename))
-
-    stdout_print("  [%i/%i] %s %s..." %
-                 (tweet_num, tweet_count_to_process, "Copying" if can_be_copied else "Downloading", media_url))
-
-    if can_be_copied:
-      copyfile(os.path.join(earlier_archive_path, local_filename), local_filename)
-    else:
-      download_file(media_url_original_resolution, local_filename)
-
-    tweet_image_num += 1
-
-    # Rewrite the data so that the archive's index.html
-    # will now point to local files... and also so that the script can
-    # continue from last point.
-    media['media_url_orig'] = media['media_url']
-    media['media_url'] = local_filename
+    process_tweet_image(tweet, media, date, date_str, tweet_image_num, tweet_num, tweet_count_to_process)
 
   return len(media_to_download)
 
