@@ -66,7 +66,7 @@ def process_earlier_archive_path(args):
     except:
       print "Could not find the earlier archive!"
       print "Make sure you're pointing at the directory that contains the index.html file."
-      sys.exit(-4)
+      sys.exit(error_codes['EARLIER_ARCHIVE_MISSING'])
 
   return earlier_archive_path
 
@@ -87,7 +87,7 @@ def read_index():
     print "Please run this script from your tweet archive directory"
     print "(the one with index.html file)."
     print
-    sys.exit(-1)
+    sys.exit(error_codes['INDEX_FILE_MISSING'])
 
 
 # Make a copy of the original JS file in backup_filename, just in case (only if it doesn't exist before)
@@ -135,8 +135,8 @@ def download_file(url, local_filename):
   downloaded = False
   download_tries = 3
   while not downloaded:
-    # Actually download the file!
     try:
+      # Actually download the file!
       urllib.urlretrieve(url, local_filename)
     except:
       download_tries -= 1
@@ -144,7 +144,7 @@ def download_file(url, local_filename):
         print
         print "Failed to download %s after 3 tries." % url
         print "Please try again later?"
-        sys.exit(-2)
+        sys.exit(error_codes['DOWNLOAD_FAILED'])
       time.sleep(5)  # Wait 5 seconds before retrying
     else:
       return True
@@ -258,7 +258,7 @@ def process_month(date):
   return image_count_downloaded_for_month
 
 
-def main():
+def setup_globals():
   global pprinter
   pprinter = pprint.PrettyPrinter(indent=4)
 
@@ -271,6 +271,17 @@ def main():
   global earlier_archive_path
   earlier_archive_path = process_earlier_archive_path(args)
 
+  global error_codes
+  error_codes = {
+    'EARLIER_ARCHIVE_MISSING': -1,
+    'DOWNLOAD_FAILED':         -2,
+    'INDEX_FILE_MISSING':      -3,
+    'KEYBOARD_INTERRUPT':      -4
+  }
+
+
+def main():
+  setup_globals()
   tweets_by_month = read_index()
 
   print "To process: %i months worth of tweets..." % (len(tweets_by_month))
@@ -289,5 +300,11 @@ def main():
 
 
 # ========================
-main()
+try:
+  main()
+  # Nicer support for Ctrl-C
+except KeyboardInterrupt:
+  print
+  print "Interrupted! Come back any time."
+  sys.exit(error_codes['KEYBOARD_INTERRUPT'])
 # ========================
