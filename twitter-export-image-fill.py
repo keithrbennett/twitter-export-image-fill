@@ -85,12 +85,11 @@ def read_index():
   except:
     print "Could not open the data file!"
     print "Please run this script from your tweet archive directory"
-    print "(the one with index.html file)."
+    print "(the one with the index.html file)."
     print
     sys.exit(error_codes['INDEX_FILE_MISSING'])
 
 
-# Make a copy of the original JS file in backup_filename, just in case (only if it doesn't exist before)
 def create_filenames(date):
   ym_str = year_month_str(date)
 
@@ -144,8 +143,7 @@ def download_file(url, local_filename):
   download_tries = 3
   for i in range(1, download_tries + 1):
     try:
-      # Actually download the file!
-      urllib.urlretrieve(url, local_filename)
+      urllib.urlretrieve(url, local_filename) # Actually download the file!
       return True
     except:
       if i < download_tries:
@@ -183,6 +181,53 @@ def rewrite_js_file(data_filename, first_data_line, tweets_this_month, date):
   os.rename(data_filename_temp, data_filename)
 
 
+def process_tweet(tweet, tweet_num, media_directory_name, date, tweet_count_to_process):
+  if not tweet['entities']['media']:
+    return 0
+
+  image_count_for_tweet = 1
+
+  # Build a tweet date string to be used in the filename prefix
+  # (only first 19 characters)
+  date_str = reformat_date_string_for_filename(tweet['created_at'][:19])
+
+  media_to_download = filter(
+    lambda media: not media_already_downloaded(media),
+    tweet['entities']['media']
+  )
+
+  if len(media_to_download) > 0 and not os.path.exists(media_directory_name):
+    os.mkdir(media_directory_name)
+
+  for media in media_to_download:
+
+    media_url, media_url_original_resolution, local_filename = \
+      media_locators(tweet, media, date, date_str, image_count_for_tweet)
+
+    # If using an earlier archive as a starting point, try to find the desired
+    # image file there first, and copy it if present
+    can_be_copied = earlier_archive_path and os.path.isfile(os.path.join(earlier_archive_path, local_filename))
+
+    stdout_print("  [%i/%i] %s %s..." %
+                 (tweet_num, tweet_count_to_process, "Copying" if can_be_copied else "Downloading", media_url))
+
+    if can_be_copied:
+      copyfile(os.path.join(earlier_archive_path, local_filename), local_filename)
+    else:
+      download_file(media_url_original_resolution, local_filename)
+
+    image_count_for_tweet += 1
+
+    # Rewrite the data so that the archive's index.html
+    # will now point to local files... and also so that the script can
+    # continue from last point.
+    media['media_url_orig'] = media['media_url']
+    media['media_url'] = local_filename
+
+  return len(media_to_download)
+
+
+
 def process_month(date):
 
   year_month_display_str = "%04d/%02d" % (date['year'], date['month'])
@@ -209,53 +254,13 @@ def process_month(date):
   stdout_print("%s: %i tweets to process..." % (year_month_display_str, tweet_count_to_process))
 
   for tweet_num, tweet in enumerate(tweets_to_process):
+    image_count_downloaded_for_month += \
+        process_tweet(tweet, tweet_num, media_directory_name, date, tweet_count_to_process)
 
-    if tweet['entities']['media']:
-      image_count_for_tweet = 1
-
-      # Build a tweet date string to be used in the filename prefix
-      # (only first 19 characters)
-      date_str = reformat_date_string_for_filename(tweet['created_at'][:19])
-
-      media_to_download = filter(
-        lambda media: not media_already_downloaded(media),
-        tweet['entities']['media']
-      )
-
-      if len(media_to_download) > 0 and not os.path.exists(media_directory_name):
-        os.mkdir(media_directory_name)
-
-      for media in media_to_download:
-
-        media_url, media_url_original_resolution, local_filename = \
-            media_locators(tweet, media, date, date_str, image_count_for_tweet)
-
-        # If using an earlier archive as a starting point, try to find the desired
-        # image file there first, and copy it if present
-        can_be_copied = earlier_archive_path and os.path.isfile(os.path.join(earlier_archive_path, local_filename))
-
-        stdout_print("  [%i/%i] %s %s..." %
-            (tweet_num, tweet_count_to_process, "Copying" if can_be_copied else "Downloading", media_url))
-
-        if can_be_copied:
-          copyfile(os.path.join(earlier_archive_path, local_filename), local_filename)
-        else:
-          download_file(media_url_original_resolution, local_filename)
-
-        # Rewrite the original JSON file so that the archive's index.html
-        # will now point to local files... and also so that the script can
-        # continue from last point.
-        media['media_url_orig'] = media['media_url']
-        media['media_url'] = local_filename
-        rewrite_js_file(data_filename, first_data_line, tweets_this_month, date)
-
-        image_count_for_tweet += 1
-        image_count_downloaded_for_month += 1
-
-      # End loop (images in a tweet)
-
-  # End loop (tweets in a month)
-
+  # Rewrite the original JSON file so that the archive's index.html
+  # will now point to local files... and also so that the script can
+  # continue from last point.
+  rewrite_js_file(data_filename, first_data_line, tweets_this_month, date)
 
   stdout_print(
       "%s: %4i tweets processed, %4i images downloaded.\n"
@@ -264,7 +269,7 @@ def process_month(date):
 
 
 def setup_globals():
-  global pprinter # pprinter.pprint() can be used to output objects
+  global pprinter # pprinter.pprint() can be used to output objects nicely
   pprinter = pprint.PrettyPrinter(indent=4)
 
   global tweet_dir
@@ -294,13 +299,11 @@ def main():
   tweets_by_month = read_index()
 
   print "To process: %i months worth of tweets..." % (len(tweets_by_month))
-  print "(You can cancel any time. Next time you run, the script should resume at the last point.)"
-  print
+  print "(You can cancel any time. Next time you run, the script should resume at the last point.)\n"
 
   total_image_count = 0
   for month in tweets_by_month:
     total_image_count += process_month(month)
-
 
   print
   print "Done!"
@@ -311,7 +314,7 @@ def main():
 # ========================
 try:
   main()
-  # Nicer support for Ctrl-C
+# Nicer support for Ctrl-C:
 except KeyboardInterrupt:
   print
   print "Interrupted! Come back any time."
