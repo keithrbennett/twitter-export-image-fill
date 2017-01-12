@@ -32,8 +32,6 @@ print "by Marcin Wichary (aresluna.org)"
 print "use --help to see options"
 print
 
-pprinter = pprint.PrettyPrinter(indent=4)
-
 
 def stdout_print(str):
   sys.stdout.write("\r%s\033[K" % str)
@@ -268,6 +266,8 @@ def process_month(date):
 
 
 def main():
+  global pprinter
+  pprinter = pprint.PrettyPrinter(indent=4)
 
   global tweet_dir
   tweet_dir = os.path.join("data", "js", "tweets")
