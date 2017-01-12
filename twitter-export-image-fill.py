@@ -198,8 +198,6 @@ def process_tweet_image(tweet, media, date, date_str, tweet_image_num, tweet_num
   else:
     download_file(media_url_original_resolution, local_filename)
 
-  tweet_image_num += 1
-
   # Rewrite the data so that the archive's index.html
   # will now point to local files... and also so that the script can
   # continue from last point.
@@ -211,24 +209,28 @@ def process_tweet(tweet, tweet_num, media_directory_name, date, tweet_count_to_p
   if not tweet['entities']['media']:
     return 0
 
-  tweet_image_num = 1
-
-  # Build a tweet date string to be used in the filename prefix
-  # (only first 19 characters)
-  date_str = reformat_date_string_for_filename(tweet['created_at'][:19])
-
   media_to_download = filter(
     lambda media: not media_already_downloaded(media),
     tweet['entities']['media']
   )
 
-  if len(media_to_download) > 0 and not os.path.exists(media_directory_name):
-    os.mkdir(media_directory_name)
+  media_download_count = len(media_to_download)
 
-  for media in media_to_download:
-    process_tweet_image(tweet, media, date, date_str, tweet_image_num, tweet_num, tweet_count_to_process)
+  if media_download_count > 0:
+    tweet_image_num = 1
 
-  return len(media_to_download)
+    # Build a tweet date string to be used in the filename prefix
+    # (only first 19 characters)
+    date_str = reformat_date_string_for_filename(tweet['created_at'][:19])
+
+    if not os.path.exists(media_directory_name):
+      os.mkdir(media_directory_name)
+
+    for media in media_to_download:
+      process_tweet_image(tweet, media, date, date_str, tweet_image_num, tweet_num, tweet_count_to_process)
+      tweet_image_num += 1
+
+  return media_download_count
 
 
 
@@ -241,15 +243,11 @@ def process_month(date):
   if not os.path.exists(backup_filename):
     copyfile(data_filename, backup_filename)
 
-  # Loop 2: Go through all the tweets in a month
-  # --------------------------------------------
-
   tweets_this_month, first_data_line = read_month_data_file(data_filename)
 
   image_count_downloaded_for_month = 0
 
   tweets_to_process = tweets_this_month
-
 
   if not args.include_retweets:
     # if the user has not specified that images should be retrieved for retweets
