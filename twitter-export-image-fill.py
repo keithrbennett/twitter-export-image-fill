@@ -41,23 +41,25 @@ def stdout_print(str):
 
 
 def year_month_str(date):
-
-  year_str = '%04d' % date['year']
+  year_str  = '%04d' % date['year']
   month_str = '%02d' % date['month']
   return "%s_%s" % (year_str, month_str)
 
 
 def parse_arguments():
   parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
+
   parser.add_argument('--include-retweets', action='store_true',
-  help = 'download images of retweets in addition to your own tweets')
+      help = 'download images of retweets in addition to your own tweets')
+
   parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
-  help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
+      help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
+
   return parser.parse_args()
 
 
-# If an earlier archive has been specified, check whether or not it actually exists
-# (This is important because failure would mean quietly downloading all the files again)
+# If an earlier archive has been specified, check whether or not it actually exists.
+# (This is important because failure would mean quietly downloading all the files again.)
 def process_earlier_archive_path(args):
 
   earlier_archive_path = args.EARLIER_ARCHIVE_PATH
@@ -79,7 +81,6 @@ def read_index():
   try:
     with open(index_filename) as index_file:
       index_str = index_file.read()
-
       index_str = re.sub(r'var tweet_index =', '', index_str)
       index = json.loads(index_str)
       return index
