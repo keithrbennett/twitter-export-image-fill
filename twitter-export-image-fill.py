@@ -106,12 +106,6 @@ def create_filenames(date):
   return [data_filename, backup_filename, media_directory_name]
 
 
-def copy_file_if_absent(source, destination):
-  try:
-    os.stat(destination)
-  except:
-    copyfile(source, destination)
-
 
 def read_month_data_file(data_filename):
   with open(data_filename) as data_file:
@@ -193,7 +187,8 @@ def process_month(date):
   try:
     data_filename, backup_filename, media_directory_name = create_filenames(date)
 
-    copy_file_if_absent(data_filename, backup_filename)
+    if not os.path.exists(backup_filename):
+      copyfile(data_filename, backup_filename)
 
     # Loop 2: Go through all the tweets in a month
     # --------------------------------------------
@@ -206,7 +201,7 @@ def process_month(date):
 
 
     if not args.include_retweets:
-      # Don't save images from retweets
+      # if the user has not specified that images should be retrieved for retweets
       tweets_to_process = filter(lambda tweet: not is_retweet(tweet), tweets_to_process)
     tweet_count_to_process = len(tweets_to_process)
     stdout_print("%s: %i tweets to process..." % (year_month_display_str, tweet_count_to_process))
@@ -250,7 +245,6 @@ def process_month(date):
           # continue from last point.
           media['media_url_orig'] = media['media_url']
           media['media_url'] = local_filename
-
           rewrite_js_file(data_filename, first_data_line, tweets_this_month, date)
 
           image_count_for_tweet += 1
