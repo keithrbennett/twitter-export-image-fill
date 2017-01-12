@@ -155,7 +155,7 @@ def download_file(url, local_filename):
         sys.exit(error_codes['DOWNLOAD_FAILED'])
 
 
-def media_locators(tweet, media, date, date_str, image_count_for_tweet):
+def media_locators(tweet, media, date, date_str, tweet_image_num):
   media_url = media['media_url_https']
 
   extension = os.path.splitext(media_url)[1]
@@ -166,7 +166,7 @@ def media_locators(tweet, media, date, date_str, image_count_for_tweet):
   local_filename = os.path.join("data", "js", "tweets",
                                 "%s_media" % (year_month_str(date)),
                                 "%s-%s-%s%d%s" % (date_str, tweet['id'], ('rt-' if is_retweet(tweet) else ''),
-                                                  image_count_for_tweet, extension))
+                                                  tweet_image_num, extension))
   return [media_url, media_url_original_resolution, local_filename]
 
 
@@ -185,7 +185,7 @@ def process_tweet(tweet, tweet_num, media_directory_name, date, tweet_count_to_p
   if not tweet['entities']['media']:
     return 0
 
-  image_count_for_tweet = 1
+  tweet_image_num = 1
 
   # Build a tweet date string to be used in the filename prefix
   # (only first 19 characters)
@@ -202,7 +202,7 @@ def process_tweet(tweet, tweet_num, media_directory_name, date, tweet_count_to_p
   for media in media_to_download:
 
     media_url, media_url_original_resolution, local_filename = \
-      media_locators(tweet, media, date, date_str, image_count_for_tweet)
+      media_locators(tweet, media, date, date_str, tweet_image_num)
 
     # If using an earlier archive as a starting point, try to find the desired
     # image file there first, and copy it if present
@@ -216,7 +216,7 @@ def process_tweet(tweet, tweet_num, media_directory_name, date, tweet_count_to_p
     else:
       download_file(media_url_original_resolution, local_filename)
 
-    image_count_for_tweet += 1
+    tweet_image_num += 1
 
     # Rewrite the data so that the archive's index.html
     # will now point to local files... and also so that the script can
