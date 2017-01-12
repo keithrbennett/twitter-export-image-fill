@@ -26,11 +26,13 @@ import time
 import urllib
 from shutil import copyfile
 
+
 # Introduce yourself
-print "Twitter export image fill 1.02"
-print "by Marcin Wichary (aresluna.org)"
-print "use --help to see options"
-print
+def output_initial_greeting():
+  print "Twitter export image fill 1.02"
+  print "by Marcin Wichary (aresluna.org)"
+  print "use --help to see options"
+  print
 
 
 def stdout_print(str):
@@ -94,11 +96,14 @@ def read_index():
 def create_filenames(date):
   ym_str = year_month_str(date)
 
+  # example: data/js/tweets/2017_01.js
   data_filename = os.path.join(tweet_dir, "%s.js" % (ym_str))
 
   # Make a copy of the original JS file, just in case (only if it doesn't exist before)
+  # example: data/js/tweets/2017_01_original.js
   backup_filename = os.path.join(tweet_dir, "%s_original.js" % (ym_str))
 
+  # example: data/js/tweets/2017_01_media
   media_directory_name = os.path.join(tweet_dir, "%s_media" % (ym_str))
 
   return [data_filename, backup_filename, media_directory_name]
@@ -108,8 +113,13 @@ def create_filenames(date):
 def read_month_data_file(data_filename):
   with open(data_filename) as data_file:
     data_str = data_file.read()
-    # Remove the assignment to a variable that breaks JSON parsing,
-    # but save for later since we have to recreate the file
+
+    # First line will look like this:
+    # Grailbird.data.tweets_2017_01 =[
+    #
+    # Remove the assignment to a variable that breaks JSON parsing
+    # (everything to the left of '['),
+    # but save for later since we have to recreate the file.
     first_data_line = re.match(r'Grailbird.data.tweets_(.*) =', data_str).group(0)
     data_str = re.sub(first_data_line, '', data_str)
     data = json.loads(data_str)
@@ -256,7 +266,7 @@ def process_month(date):
 
 
 def setup_globals():
-  global pprinter
+  global pprinter # pprinter.pprint() can be used to output objects
   pprinter = pprint.PrettyPrinter(indent=4)
 
   global tweet_dir
@@ -278,6 +288,7 @@ def setup_globals():
 
 
 def main():
+  output_initial_greeting()
   setup_globals()
   tweets_by_month = read_index()
 
