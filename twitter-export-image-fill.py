@@ -182,87 +182,80 @@ def process_month(date):
 
   year_month_display_str = "%04d/%02d" % (date['year'], date['month'])
 
-  try:
-    data_filename, backup_filename, media_directory_name = create_filenames(date)
+  data_filename, backup_filename, media_directory_name = create_filenames(date)
 
-    if not os.path.exists(backup_filename):
-      copyfile(data_filename, backup_filename)
+  if not os.path.exists(backup_filename):
+    copyfile(data_filename, backup_filename)
 
-    # Loop 2: Go through all the tweets in a month
-    # --------------------------------------------
+  # Loop 2: Go through all the tweets in a month
+  # --------------------------------------------
 
-    tweets_this_month, first_data_line = read_month_data_file(data_filename)
+  tweets_this_month, first_data_line = read_month_data_file(data_filename)
 
-    image_count_downloaded_for_month = 0
+  image_count_downloaded_for_month = 0
 
-    tweets_to_process = tweets_this_month
-
-
-    if not args.include_retweets:
-      # if the user has not specified that images should be retrieved for retweets
-      tweets_to_process = filter(lambda tweet: not is_retweet(tweet), tweets_to_process)
-    tweet_count_to_process = len(tweets_to_process)
-    stdout_print("%s: %i tweets to process..." % (year_month_display_str, tweet_count_to_process))
-
-    for tweet_num, tweet in enumerate(tweets_to_process):
-
-      if tweet['entities']['media']:
-        image_count_for_tweet = 1
-
-        # Build a tweet date string to be used in the filename prefix
-        # (only first 19 characters)
-        date_str = reformat_date_string_for_filename(tweet['created_at'][:19])
-
-        media_to_download = filter(
-          lambda media: not media_already_downloaded(media),
-          tweet['entities']['media']
-        )
-
-        if len(media_to_download) > 0 and not os.path.exists(media_directory_name):
-          os.mkdir(media_directory_name)
-
-        for media in media_to_download:
-
-          media_url, media_url_original_resolution, local_filename = \
-              media_locators(tweet, media, date, date_str, image_count_for_tweet)
-
-          # If using an earlier archive as a starting point, try to find the desired
-          # image file there first, and copy it if present
-          can_be_copied = earlier_archive_path and os.path.isfile(os.path.join(earlier_archive_path, local_filename))
-
-          stdout_print("  [%i/%i] %s %s..." %
-              (tweet_num, tweet_count_to_process, "Copying" if can_be_copied else "Downloading", media_url))
-
-          if can_be_copied:
-            copyfile(os.path.join(earlier_archive_path, local_filename), local_filename)
-          else:
-            download_file(media_url_original_resolution, local_filename)
-
-          # Rewrite the original JSON file so that the archive's index.html
-          # will now point to local files... and also so that the script can
-          # continue from last point.
-          media['media_url_orig'] = media['media_url']
-          media['media_url'] = local_filename
-          rewrite_js_file(data_filename, first_data_line, tweets_this_month, date)
-
-          image_count_for_tweet += 1
-          image_count_downloaded_for_month += 1
-
-        # End loop (images in a tweet)
-
-    # End loop (tweets in a month)
+  tweets_to_process = tweets_this_month
 
 
-    stdout_print(
-        "%s: %4i tweets processed, %4i images downloaded.\n"
-        % (year_month_display_str, tweet_count_to_process, image_count_downloaded_for_month))
-    return image_count_downloaded_for_month
+  if not args.include_retweets:
+    # if the user has not specified that images should be retrieved for retweets
+    tweets_to_process = filter(lambda tweet: not is_retweet(tweet), tweets_to_process)
+  tweet_count_to_process = len(tweets_to_process)
+  stdout_print("%s: %i tweets to process..." % (year_month_display_str, tweet_count_to_process))
 
-  # Nicer support for Ctrl-C
-  except KeyboardInterrupt:
-    print
-    print "Interrupted! Come back any time."
-    sys.exit(-3)
+  for tweet_num, tweet in enumerate(tweets_to_process):
+
+    if tweet['entities']['media']:
+      image_count_for_tweet = 1
+
+      # Build a tweet date string to be used in the filename prefix
+      # (only first 19 characters)
+      date_str = reformat_date_string_for_filename(tweet['created_at'][:19])
+
+      media_to_download = filter(
+        lambda media: not media_already_downloaded(media),
+        tweet['entities']['media']
+      )
+
+      if len(media_to_download) > 0 and not os.path.exists(media_directory_name):
+        os.mkdir(media_directory_name)
+
+      for media in media_to_download:
+
+        media_url, media_url_original_resolution, local_filename = \
+            media_locators(tweet, media, date, date_str, image_count_for_tweet)
+
+        # If using an earlier archive as a starting point, try to find the desired
+        # image file there first, and copy it if present
+        can_be_copied = earlier_archive_path and os.path.isfile(os.path.join(earlier_archive_path, local_filename))
+
+        stdout_print("  [%i/%i] %s %s..." %
+            (tweet_num, tweet_count_to_process, "Copying" if can_be_copied else "Downloading", media_url))
+
+        if can_be_copied:
+          copyfile(os.path.join(earlier_archive_path, local_filename), local_filename)
+        else:
+          download_file(media_url_original_resolution, local_filename)
+
+        # Rewrite the original JSON file so that the archive's index.html
+        # will now point to local files... and also so that the script can
+        # continue from last point.
+        media['media_url_orig'] = media['media_url']
+        media['media_url'] = local_filename
+        rewrite_js_file(data_filename, first_data_line, tweets_this_month, date)
+
+        image_count_for_tweet += 1
+        image_count_downloaded_for_month += 1
+
+      # End loop (images in a tweet)
+
+  # End loop (tweets in a month)
+
+
+  stdout_print(
+      "%s: %4i tweets processed, %4i images downloaded.\n"
+      % (year_month_display_str, tweet_count_to_process, image_count_downloaded_for_month))
+  return image_count_downloaded_for_month
 
 
 def main():
